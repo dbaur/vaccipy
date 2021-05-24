@@ -464,19 +464,34 @@ class ImpfterminService():
             terminpaare = res_json.get("termine")
             if terminpaare:
                 # Auswahl des erstbesten Terminpaares
-                self.terminpaar = choice(terminpaare)
-                self.plz_termin = plz
-                self.log.success(f"Terminpaar gefunden!")
-                self.impfzentrum = self.verfuegbare_impfzentren.get(plz)
-                self.log.success("'{}' in {} {}".format(
-                    self.impfzentrum.get("Zentrumsname").strip(),
-                    self.impfzentrum.get("PLZ"),
-                    self.impfzentrum.get("Ort")))
-                for num, termin in enumerate(self.terminpaar, 1):
-                    ts = datetime.fromtimestamp(termin["begin"] / 1000).strftime(
-                        '%d.%m.%Y um %H:%M Uhr')
-                    self.log.success(f"{num}. Termin: {ts}")
-                return True, 200
+                # self.terminpaar = choice(terminpaare)
+
+                """
+                Check for the earliest possible date
+                """
+                check_date = 1623016800 * 1000
+                for possible_pair in terminpaare:
+                    both_ok = "true"
+                    for possible_date in possible_pair:
+                        both_ok = "true"
+                        if possible_date["begin"] <= check_date:
+                            both_ok = "false"
+                            false_data = possible_date["begin"]
+                            self.log.info(f"Termin einer der Paare ist vor dem möglichen Datum. Termindatum: {false_data}, Mögliches Datum {check_date}")
+                    if bool(both_ok):
+                        self.terminpaar = possible_pair
+                        self.plz_termin = plz
+                        self.log.success(f"Terminpaar gefunden!")
+                        self.impfzentrum = self.verfuegbare_impfzentren.get(plz)
+                        self.log.success("'{}' in {} {}".format(
+                            self.impfzentrum.get("Zentrumsname").strip(),
+                            self.impfzentrum.get("PLZ"),
+                            self.impfzentrum.get("Ort")))
+                        for num, termin in enumerate(self.terminpaar, 1):
+                            ts = datetime.fromtimestamp(termin["begin"] / 1000).strftime(
+                                '%d.%m.%Y um %H:%M Uhr')
+                            self.log.success(f"{num}. Termin: {ts}")
+                        return True, 200
             else:
                 self.log.info(f"Keine Termine verfügbar in {plz}")
         else:
