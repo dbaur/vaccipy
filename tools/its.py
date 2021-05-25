@@ -473,7 +473,6 @@ class ImpfterminService():
                 for possible_pair in terminpaare:
                     both_ok = "true"
                     for possible_date in possible_pair:
-                        both_ok = "true"
                         if possible_date["begin"] <= check_date:
                             both_ok = "false"
                             false_data = possible_date["begin"]
